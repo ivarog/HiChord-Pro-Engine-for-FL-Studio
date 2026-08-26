@@ -98,3 +98,5 @@ Map your 8 drum pads to MIDI notes **48 through 55**. Pressing these pads while 
 The script includes built-in console logging. To view real-time MIDI data (useful for mapping new knobs or troubleshooting controller inputs):
 1. In FL Studio, go to the top menu: **View > Script output**.
 2. Any pressed key, pad, or turned encoder will print its exact `MIDI Note` or `CC Value` directly to the console. Update the CC variables at the top of the script if your knobs do not match the defaults.
+
+![HiChord Pro Engine Preview](51EjMyfRuyL.png)

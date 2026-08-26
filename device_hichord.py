@@ -148,17 +148,17 @@ def apply_inversion(notes, inversion_level):
     return inverted_notes
 
 def update_active_chords():
+    """Retroactively updates chords with smart note retention (Smooth Blend)"""
     global active_chords
+    
     for physical_key, data in list(active_chords.items()):
         playing_notes = data["notes"]
         original_velocity = data["velocity"] 
-        for note in playing_notes:
-            if 0 <= note <= 127:
-                channels.midiNoteOn(channels.channelNumber(), note, 0)
         
         white_key_mapping = {0:0, 2:1, 4:2, 5:3, 7:4, 9:5, 11:6}
         degree = white_key_mapping[physical_key % 12]
         chord_intervals = get_diatonic_chord(degree)
+        
         base_octave = 60 + (GLOBAL_OCTAVE * 12)
         new_notes = [base_octave + GLOBAL_ROOT + interval for interval in chord_intervals]
         new_notes = apply_inversion(new_notes, GLOBAL_INVERSION)
@@ -167,10 +167,21 @@ def update_active_chords():
             bass_note = base_octave + GLOBAL_ROOT + chord_intervals[0] - (12 * GLOBAL_BASS_MODE)
             new_notes.append(bass_note)
         
-        for note in new_notes:
+        old_notes_set = set(playing_notes)
+        new_notes_set = set(new_notes)
+        
+        notes_to_turn_off = old_notes_set - new_notes_set
+        notes_to_turn_on = new_notes_set - old_notes_set
+        
+        for note in notes_to_turn_off:
+            if 0 <= note <= 127:
+                channels.midiNoteOn(channels.channelNumber(), note, 0)
+                
+        for note in notes_to_turn_on:
             if 0 <= note <= 127:
                 channels.midiNoteOn(channels.channelNumber(), note, original_velocity)
-        active_chords[physical_key] = {"notes": new_notes, "velocity": original_velocity}
+                
+        active_chords[physical_key] = {"notes": list(new_notes), "velocity": original_velocity}
 
 # ==========================================
 # 3. MIDI EVENT LISTENERS
